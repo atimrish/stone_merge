@@ -1,0 +1,82 @@
+.top_panel {
+	display: flex;
+	align-items: center;
+}
+
+.score {
+	font-size: 5vmin;
+	color: var(--white);
+	font-weight: 700;
+	text-align: center;
+}
+
+.best_score {
+	display: flex;
+	align-items: center;
+	font-size: 3vmin;
+	font-weight: 700;
+	width: 100%;
+	gap: 8px;
+	color: var(--white);
+}
+
+.best_score svg {
+	stroke: var(--white);
+	width: 4vmin;
+	height: 4vmin;
+}
+
+.scoreboard {
+	width: 100%;
+}
+
+.right_block {
+	display: flex;
+	align-items: center;
+    gap: 8px;
+}
+
+.new_game_button svg {
+	stroke: var(--white);
+}
+
+.scoreboard_button svg {
+	width: 3vmin;
+	height: 3vmin;
+}
+
+.scoreboard_button {
+	width: 4vmin;
+	aspect-ratio: 1;
+	border: 1px solid var(--white);
+	border-radius: 5px;
+	background-color: var(--black);
+	display: grid;
+	place-items: center;
+	padding: 0;
+	cursor: pointer;
+}
+
+@media screen and (max-width: 560px) {
+	.score {
+		font-size: 10vmin;
+	}
+
+	.best_score {
+		font-size: 6vmin;
+	}
+
+	.best_score svg {
+		width: 8vmin;
+		height: 8vmin;
+	}
+
+	.scoreboard_button {
+		width: 8vmin;
+	}
+
+	.scoreboard_button svg {
+		width: 6vmin;
+		height: 6vmin;
+	}
+}

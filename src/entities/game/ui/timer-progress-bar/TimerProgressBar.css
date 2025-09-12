@@ -1,0 +1,41 @@
+.progress_container {
+	height: 2vmin;
+	background-color: #404040;
+	border-radius: 8px;
+	overflow: hidden;
+	width: 40vmin;
+}
+
+.inner_progress {
+	height: 100%;
+	background-color: #43aa8b;
+	border-radius: 8px;
+	will-change: width, background-color;
+	transition: background-color 250ms ease;
+}
+
+.main_container {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	justify-content: center;
+	margin-bottom: 1vmin;
+}
+
+.main_container svg {
+	width: 4vmin;
+	height: 4vmin;
+}
+
+@media screen and (max-width: 560px) {
+	.progress_container {
+        width: 80vmin;
+        height: 4vmin;
+	}
+
+    .main_container svg {
+        width: 8vmin;
+        height: 8vmin;
+    }
+}

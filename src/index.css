@@ -1,0 +1,38 @@
+@font-face {
+	font-family: "Exo2";
+	src: url("./shared/ui/assets/fonts/Exo2-VariableFont_wght.ttf");
+}
+
+:global :root {
+	--white: #feffff;
+	--black: #0e0e10;
+
+	--main-font: "Exo2", sans-serif;
+
+	--cell-width: 8vmin;
+}
+
+:global * {
+	box-sizing: border-box;
+	font-family: var(--main-font);
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+:global body {
+	min-height: 100vh;
+	background-color: #404040;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	overflow: hidden;
+	overscroll-behavior-y: contain;
+}
+
+@media screen and (max-width: 560px) {
+	:global :root {
+		--cell-width: 15vmin;
+	}
+}

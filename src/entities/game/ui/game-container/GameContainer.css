@@ -1,0 +1,15 @@
+.container {
+	height: 100vh;
+	background-color: var(--black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+	padding: 4vmin;
+	position: relative;
+}
+
+@media screen and (max-width: 560px) {
+	.container {
+		width: 100vw;
+	}
+}

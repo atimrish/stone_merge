@@ -1,0 +1,8 @@
+.cells_block {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    padding: 2vmin;
+    gap: 4px;
+    width: max-content;
+}
