@@ -34,7 +34,7 @@ export const Cell = (p: CellProps) => {
 
 	const fallPixels = (CELL_HEIGHT + CELL_GAP) * p.fall;
 
-	const onCellMove = (eventX: number, eventY: number, isTouch: boolean) => {
+	const onCellMove = (eventX: number, eventY: number) => {
 		isPicked = true;
 
 		if (cellInnerRef.current) {
@@ -102,13 +102,13 @@ export const Cell = (p: CellProps) => {
 				setCells([...cells]);
 
 				//очищаем обработчики событий
-				if (isTouch) {
+				
 					document.body.removeEventListener("touchmove", onTouchMove);
 					document.body.removeEventListener("touchend", onTouchEnd);
-				} else {
+				
 					document.body.removeEventListener("mousemove", onMouseMove);
 					document.body.removeEventListener("mouseup", onMouseUp);
-				}
+				
 
 				requestAnimationTimeout(() => {
 					if (cellInnerRef.current) {
@@ -171,7 +171,7 @@ export const Cell = (p: CellProps) => {
 	};
 
 	const onMouseMove = (e: MouseEvent) => {
-		onCellMove(e.clientX, e.clientY, false);
+		onCellMove(e.clientX, e.clientY);
 	};
 
 	const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -188,7 +188,7 @@ export const Cell = (p: CellProps) => {
 	};
 
 	const onTouchMove = (e: TouchEvent) => {
-		onCellMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY, true);
+		onCellMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
 	};
 
 	const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -202,13 +202,9 @@ export const Cell = (p: CellProps) => {
 
 	useEffect(() => {
 		return () => {
-			if (isPicked) {
-				isPicked = false;
-				requestAnimationTimeout(() => {
-					if (cellInnerRef.current) {
-						cellInnerRef.current.style.transform = "translate(0px, 0px)";
-					}
-				}, 150);
+			if (isPicked && cellInnerRef.current) {
+				isPicked = false
+				cellInnerRef.current.style.transform = "translate(0px, 0px)";
 			}
 
 			document.body.removeEventListener("mousemove", onMouseMove);

@@ -1,5 +1,5 @@
 import {createContext, useContext} from "react";
-import {TCellsTable, TFallenCells} from "./types";
+import {TCellsTable, TFallenCells, TLanguage} from "./types";
 
 interface IGameContext {
 	cells: TCellsTable;
@@ -25,6 +25,9 @@ interface IGameContext {
 
 	paused: boolean;
 	setPaused: React.Dispatch<React.SetStateAction<boolean>>;
+
+	language: TLanguage,
+	setLanguage: React.Dispatch<React.SetStateAction<TLanguage>>;
 
 	pushRowAtBottom: () => void;
 	startNewGame: () => void;

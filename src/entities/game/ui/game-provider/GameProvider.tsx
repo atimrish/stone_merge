@@ -1,11 +1,11 @@
+import {keyXY} from "@src/shared/lib/keyXY";
 import {randomNumber} from "@src/shared/lib/randomNumber";
 import {requestAnimationTimeout} from "@src/shared/lib/requestAnimationTimeout";
 import {PropsWithChildren, useEffect, useRef, useState} from "react";
 import {LOCAL_STORAGE_KEYS} from "../../config";
 import {getStartCells} from "../../lib/getStartCells";
 import {GameContext} from "../../model/gameContext";
-import {TCellsTable, TFallenCells} from "../../model/types";
-import {keyXY} from "@src/shared/lib/keyXY";
+import {TCellsTable, TFallenCells, TLanguage} from "../../model/types";
 
 const initBestScore = () => {
 	const localBestScore = localStorage.getItem(LOCAL_STORAGE_KEYS.BEST_SCORE);
@@ -21,6 +21,7 @@ export const GameProvider = (p: PropsWithChildren) => {
 	const [score, setScore] = useState(0);
 	const [bestScore, setBestScore] = useState(initBestScore);
 	const [paused, setPaused] = useState(false);
+	const [language, setLanguage] = useState<TLanguage>("ru");
 
 	const upPhaseRef = useRef(false);
 
@@ -130,6 +131,8 @@ export const GameProvider = (p: PropsWithChildren) => {
 				setBestScore,
 				paused,
 				setPaused,
+				language,
+				setLanguage,
 				pushRowAtBottom,
 				startNewGame,
 			}}>

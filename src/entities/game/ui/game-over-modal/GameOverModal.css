@@ -19,6 +19,7 @@
     font-size: 6vmin;
     font-weight: 700;
     margin-bottom: 3vmin;
+    text-align: center;
 }
 
 .modal__button {
@@ -47,5 +48,21 @@
     }
     to {
         opacity: 1;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    .modal__title {
+        font-size: 10vmin;
+        margin-bottom: 10vmin;
+    }
+
+    .modal__button {
+        width: 24vmin;
+    }
+
+    .modal__button svg {
+        width: 20vmin;
+        height: 20vmin;
     }
 }
