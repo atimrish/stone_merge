@@ -12,6 +12,11 @@ const initBestScore = () => {
 	return localBestScore ? Number(localBestScore) : 0;
 };
 
+const initLanguage = (): TLanguage => {
+	const localLanguage = localStorage.getItem(LOCAL_STORAGE_KEYS.LANGUAGE) as TLanguage | undefined;
+	return localLanguage ?? "ru";
+};
+
 export const GameProvider = (p: PropsWithChildren) => {
 	const [cells, setCells] = useState<TCellsTable>(getStartCells);
 	const [fallen, setFallen] = useState<TFallenCells>({});
@@ -21,7 +26,8 @@ export const GameProvider = (p: PropsWithChildren) => {
 	const [score, setScore] = useState(0);
 	const [bestScore, setBestScore] = useState(initBestScore);
 	const [paused, setPaused] = useState(false);
-	const [language, setLanguage] = useState<TLanguage>("ru");
+	const [language, setLanguage] = useState<TLanguage>(initLanguage);
+	const [started, setStarted] = useState(false)
 
 	const upPhaseRef = useRef(false);
 
@@ -110,6 +116,7 @@ export const GameProvider = (p: PropsWithChildren) => {
 		setStartTime(Date.now());
 		setScore(0);
 		setPaused(false);
+		setStarted(true)
 	};
 
 	return (
@@ -133,6 +140,8 @@ export const GameProvider = (p: PropsWithChildren) => {
 				setPaused,
 				language,
 				setLanguage,
+				started,
+				setStarted,
 				pushRowAtBottom,
 				startNewGame,
 			}}>

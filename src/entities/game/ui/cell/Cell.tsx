@@ -1,3 +1,5 @@
+import {keyXY} from "@src/shared/lib/keyXY";
+import {throttle} from "@src/shared/lib/throttle";
 import React, {useEffect, useRef} from "react";
 import {CELL_GAP, CELL_HEIGHT} from "../../config";
 import {fallStartColumn} from "../../lib/fall-start-column/fallStartColumn";
@@ -5,8 +7,6 @@ import {fallTargetColumn} from "../../lib/fall-target-column/fallTargetColumn";
 import {getColorByValue} from "../../lib/getColorByValue";
 import {useGameContext} from "../../model/gameContext";
 import * as s from "./Cell.css";
-import {requestAnimationTimeout} from "@src/shared/lib/requestAnimationTimeout";
-import {keyXY} from "@src/shared/lib/keyXY";
 
 type CellProps = {
 	value: number;
@@ -29,10 +29,21 @@ export const Cell = (p: CellProps) => {
 		now: {x: -1, y: -1},
 		prev: {x: -1, y: -1},
 	});
+	const targetElementRef = useRef<Element>(undefined);
 
 	let isPicked = false;
+	let countMove = 0;
 
 	const fallPixels = (CELL_HEIGHT + CELL_GAP) * p.fall;
+
+	const setCachedElementFromPoint = throttle((eventX: number, eventY: number) => {
+		countMove++;
+		console.log(countMove);
+
+		targetElementRef.current = document
+			.elementsFromPoint(eventX, eventY)
+			.find((el) => el.hasAttribute("data-droppable"));
+	}, 24);
 
 	const onCellMove = (eventX: number, eventY: number) => {
 		isPicked = true;
@@ -43,7 +54,8 @@ export const Cell = (p: CellProps) => {
 			cellInnerRef.current.style.transform = `translate(${x}px, ${y}px)`;
 		}
 
-		const elem = document.elementsFromPoint(eventX, eventY).find((el) => el.hasAttribute("data-droppable"));
+		setCachedElementFromPoint(eventX, eventY);
+		const elem = targetElementRef.current;
 
 		if (elem) {
 			const value = Number(elem.getAttribute("data-value"));
@@ -102,26 +114,19 @@ export const Cell = (p: CellProps) => {
 				setCells([...cells]);
 
 				//очищаем обработчики событий
-				
-					document.body.removeEventListener("touchmove", onTouchMove);
-					document.body.removeEventListener("touchend", onTouchEnd);
-				
-					document.body.removeEventListener("mousemove", onMouseMove);
-					document.body.removeEventListener("mouseup", onMouseUp);
-				
-
-				requestAnimationTimeout(() => {
-					if (cellInnerRef.current) {
-						cellInnerRef.current.style.transform = "translate(0px, 0px)";
-					}
-				}, 150);
+				targetElementRef.current = undefined;
+				document.body.removeEventListener("touchmove", onTouchMove);
+				document.body.removeEventListener("touchend", onTouchEnd);
+				document.body.removeEventListener("mousemove", onMouseMove);
+				document.body.removeEventListener("mouseup", onMouseUp);
 			}
 		}
 	};
 
-	const onCellUp = (eventX: number, eventY: number, isTouch: boolean) => {
+	const onCellUp = () => {
 		isPicked = false;
-		const elem = document.elementsFromPoint(eventX, eventY).find((el) => el.hasAttribute("data-droppable"));
+
+		const elem = targetElementRef.current;
 
 		if (elem) {
 			const targetX = Number(elem.getAttribute("data-x"));
@@ -156,18 +161,16 @@ export const Cell = (p: CellProps) => {
 
 		touchStartRef.current.x = 0;
 		touchStartRef.current.y = 0;
+		targetElementRef.current = undefined;
 
-		if (isTouch) {
-			document.body.removeEventListener("touchmove", onTouchMove);
-			document.body.removeEventListener("touchend", onTouchEnd);
-		} else {
-			document.body.removeEventListener("mousemove", onMouseMove);
-			document.body.removeEventListener("mouseup", onMouseUp);
-		}
+		document.body.removeEventListener("touchmove", onTouchMove);
+		document.body.removeEventListener("touchend", onTouchEnd);
+		document.body.removeEventListener("mousemove", onMouseMove);
+		document.body.removeEventListener("mouseup", onMouseUp);
 	};
 
-	const onMouseUp = (e: MouseEvent) => {
-		onCellUp(e.clientX, e.clientY, false);
+	const onMouseUp = () => {
+		onCellUp();
 	};
 
 	const onMouseMove = (e: MouseEvent) => {
@@ -183,8 +186,8 @@ export const Cell = (p: CellProps) => {
 		document.body.addEventListener("mouseup", onMouseUp);
 	};
 
-	const onTouchEnd = (e: TouchEvent) => {
-		onCellUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY, true);
+	const onTouchEnd = () => {
+		onCellUp();
 	};
 
 	const onTouchMove = (e: TouchEvent) => {
@@ -203,7 +206,7 @@ export const Cell = (p: CellProps) => {
 	useEffect(() => {
 		return () => {
 			if (isPicked && cellInnerRef.current) {
-				isPicked = false
+				isPicked = false;
 				cellInnerRef.current.style.transform = "translate(0px, 0px)";
 			}
 

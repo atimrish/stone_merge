@@ -26,8 +26,11 @@ interface IGameContext {
 	paused: boolean;
 	setPaused: React.Dispatch<React.SetStateAction<boolean>>;
 
-	language: TLanguage,
+	language: TLanguage;
 	setLanguage: React.Dispatch<React.SetStateAction<TLanguage>>;
+
+	started: boolean;
+	setStarted: React.Dispatch<React.SetStateAction<boolean>>;
 
 	pushRowAtBottom: () => void;
 	startNewGame: () => void;

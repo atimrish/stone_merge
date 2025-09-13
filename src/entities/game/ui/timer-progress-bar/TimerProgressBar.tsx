@@ -5,14 +5,14 @@ import {useGameContext} from "../../model/gameContext";
 import {ClockIcon} from "@src/shared/ui/icons/ClockIcon";
 
 export const TimerProgressBar = () => {
-	const {cells, pushRowAtBottom, gameOver, startTime, paused} = useGameContext();
+	const {cells, pushRowAtBottom, gameOver, startTime, paused, started} = useGameContext();
 
 	const progressRef = useRef<HTMLDivElement>(null);
 	const startTimeRef = useRef(performance.now());
 	const pauseDiffRef = useRef(0);
 
 	useEffect(() => {
-		if (!gameOver && !paused) {
+		if (!gameOver && !paused && started) {
 			let lastAnimatedFrame: number;
 
 			const animate = (currentTime: number) => {
@@ -48,19 +48,21 @@ export const TimerProgressBar = () => {
 				cancelAnimationFrame(lastAnimatedFrame);
 			};
 		}
-	}, [cells, gameOver, paused]);
+	}, [cells, gameOver, paused, started]);
 
 	useEffect(() => {
-		if (paused) {
+		if (paused && started) {
 			pauseDiffRef.current = performance.now() - startTimeRef.current;
 		} else {
 			startTimeRef.current = performance.now() - pauseDiffRef.current;
 		}
-	}, [paused]);
+	}, [paused, started]);
 
 	useEffect(() => {
-		startTimeRef.current = performance.now();
-	}, [startTime]);
+		if (started) {
+			startTimeRef.current = performance.now();
+		}
+	}, [startTime, started]);
 
 	return (
 		<div className={s.main_container}>
