@@ -32,14 +32,10 @@ export const Cell = (p: CellProps) => {
 	const targetElementRef = useRef<Element>(undefined);
 
 	let isPicked = false;
-	let countMove = 0;
 
 	const fallPixels = (CELL_HEIGHT + CELL_GAP) * p.fall;
 
 	const setCachedElementFromPoint = throttle((eventX: number, eventY: number) => {
-		countMove++;
-		console.log(countMove);
-
 		targetElementRef.current = document
 			.elementsFromPoint(eventX, eventY)
 			.find((el) => el.hasAttribute("data-droppable"));
