@@ -5,7 +5,7 @@ import {useGameContext} from "../../model/gameContext";
 import {ClockIcon} from "@src/shared/ui/icons/ClockIcon";
 
 export const TimerProgressBar = () => {
-	const {cells, pushRowAtBottom, gameOver, startTime, paused, started} = useGameContext();
+	const {cells, pushRowAtBottom, gameOver, startTime, paused, started, boardBlockedRef} = useGameContext();
 
 	const progressRef = useRef<HTMLDivElement>(null);
 	const startTimeRef = useRef(performance.now());
@@ -18,6 +18,12 @@ export const TimerProgressBar = () => {
 			const animate = (currentTime: number) => {
 				if (currentTime <= startTimeRef.current + CELL_UPDATE_TIMER_DURATION) {
 					const percent = 100 - ((currentTime - startTimeRef.current) / CELL_UPDATE_TIMER_DURATION) * 100;
+
+					const remainedTime = startTimeRef.current + CELL_UPDATE_TIMER_DURATION - currentTime;
+
+					if (remainedTime <= 180) {
+						boardBlockedRef.current = true;
+					}
 
 					if (progressRef.current) {
 						let progressColor: string;

@@ -1,11 +1,11 @@
 import {keyXY} from "@src/shared/lib/keyXY";
 import {randomNumber} from "@src/shared/lib/randomNumber";
 import {requestAnimationTimeout} from "@src/shared/lib/requestAnimationTimeout";
-import {PropsWithChildren, useEffect, useRef, useState} from "react";
+import {PropsWithChildren, RefObject, useEffect, useRef, useState} from "react";
 import {LOCAL_STORAGE_KEYS} from "../../config";
 import {getStartCells} from "../../lib/getStartCells";
 import {GameContext} from "../../model/gameContext";
-import {TCellsTable, TFallenCells, TLanguage} from "../../model/types";
+import {TCellsTable, TCoords, TFallenCells, TLanguage} from "../../model/types";
 
 const initBestScore = () => {
 	const localBestScore = localStorage.getItem(LOCAL_STORAGE_KEYS.BEST_SCORE);
@@ -27,8 +27,11 @@ export const GameProvider = (p: PropsWithChildren) => {
 	const [bestScore, setBestScore] = useState(initBestScore);
 	const [paused, setPaused] = useState(false);
 	const [language, setLanguage] = useState<TLanguage>(initLanguage);
-	const [started, setStarted] = useState(false)
+	const [started, setStarted] = useState(false);
 
+	const cellsBlockRef = useRef<HTMLDivElement>(null);
+	const cellsBlockCoordsRef = useRef<TCoords>({x: 0, y: 0});
+	const boardBlockedRef = useRef<boolean>(false)
 	const upPhaseRef = useRef(false);
 
 	useEffect(() => {
@@ -37,49 +40,47 @@ export const GameProvider = (p: PropsWithChildren) => {
 		let maxValue = maxNumber;
 		let addedScore = 0;
 
-		if (keys.length > 0) {
-			keys.forEach((key) => {
-				const x = +key[0];
-				const y = +key[1];
+		if (keys.length === 0) return;
 
-				const fallIndex = fallen[key];
+		keys.forEach((key) => {
+			const x = +key[0];
+			const y = +key[1];
 
-				if (fallIndex === 0) {
-					return;
+			const fallIndex = fallen[key];
+			if (fallIndex === 0) return;
+
+			if (cells[y + fallIndex][x] === cells[y][x]) {
+				cells[y + fallIndex][x]++;
+				cells[y][x] = 0;
+
+				addedScore += cells[y + fallIndex][x];
+
+				if (cells[y + fallIndex][x] > maxValue) {
+					maxValue = cells[y + fallIndex][x];
 				}
-
-				if (cells[y + fallIndex][x] === cells[y][x]) {
-					cells[y + fallIndex][x]++;
-					cells[y][x] = 0;
-
-					addedScore += cells[y + fallIndex][x];
-
-					if (cells[y + fallIndex][x] > maxValue) {
-						maxValue = cells[y + fallIndex][x];
-					}
-				} else if (cells[y + fallIndex][x] === 0) {
-					cells[y + fallIndex][x] = cells[y][x];
-					cells[y][x] = 0;
-				}
-			});
-
-			if (upPhaseRef.current) {
-				const newRow = Array.from({length: 6}, () => randomNumber(1, maxNumber));
-
-				for (let x = 0; x < cells[cells.length - 1].length; x++) {
-					cells[cells.length - 1][x] = newRow[x];
-				}
+			} else if (cells[y + fallIndex][x] === 0) {
+				cells[y + fallIndex][x] = cells[y][x];
+				cells[y][x] = 0;
 			}
+		});
 
-			requestAnimationTimeout(() => {
-				upPhaseRef.current = false;
+		if (upPhaseRef.current) {
+			const newRow = Array.from({length: 6}, () => randomNumber(1, maxNumber));
 
-				setScore((prev) => prev + addedScore);
-				setCells([...cells]);
-				setFallen({});
-				setMaxNumber(maxValue);
-			}, 150);
+			for (let x = 0; x < cells[cells.length - 1].length; x++) {
+				cells[cells.length - 1][x] = newRow[x];
+			}
 		}
+
+		requestAnimationTimeout(() => {
+			upPhaseRef.current = false;
+			boardBlockedRef.current = false
+
+			setScore((prev) => prev + addedScore);
+			setCells([...cells]);
+			setFallen({});
+			setMaxNumber(maxValue);
+		}, 150);
 	}, [fallen, cells, maxNumber]);
 
 	useEffect(() => {
@@ -116,7 +117,7 @@ export const GameProvider = (p: PropsWithChildren) => {
 		setStartTime(Date.now());
 		setScore(0);
 		setPaused(false);
-		setStarted(true)
+		setStarted(true);
 	};
 
 	return (
@@ -144,6 +145,9 @@ export const GameProvider = (p: PropsWithChildren) => {
 				setStarted,
 				pushRowAtBottom,
 				startNewGame,
+				cellsBlockRef,
+				cellsBlockCoordsRef,
+				boardBlockedRef
 			}}>
 			{p.children}
 		</GameContext.Provider>

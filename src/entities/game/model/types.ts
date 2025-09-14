@@ -6,4 +6,6 @@ export type TCellsTable = TCellsRow[];
 
 export type TFallenCells = Record<string, number>;
 
-export type TLanguage = 'ru' | 'en'
+export type TLanguage = "ru" | "en";
+
+export type TCoords = {x: number; y: number};
