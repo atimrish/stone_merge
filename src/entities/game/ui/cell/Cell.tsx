@@ -116,37 +116,37 @@ export const Cell = (p: CellProps) => {
 	const onCellUp = (eventX: number, eventY: number) => {
 		isPicked = false;
 
-		if (boardBlockedRef.current) return;
+		if (!boardBlockedRef.current) {
+			const {x: targetX, y: targetY} = getCoordsOnContainer(
+				cellsBlockCoordsRef.current.x,
+				cellsBlockCoordsRef.current.y,
+				eventX,
+				eventY
+			);
 
-		const {x: targetX, y: targetY} = getCoordsOnContainer(
-			cellsBlockCoordsRef.current.x,
-			cellsBlockCoordsRef.current.y,
-			eventX,
-			eventY
-		);
+			if (targetX < 0 || targetX >= CELLS_IN_ROW_COUNT || targetY < 0 || targetY >= CELLS_IN_COLUMN_COUNT) return;
 
-		if (targetX < 0 || targetX >= CELLS_IN_ROW_COUNT || targetY < 0 || targetY >= CELLS_IN_COLUMN_COUNT) return;
+			if (cells[targetY][targetX] === 0) {
+				//очищаем точку из которой брали и ставив в целевую точку
+				cells[p.y][p.x] = 0;
+				cells[targetY][targetX] = p.value;
 
-		if (cells[targetY][targetX] === 0) {
-			//очищаем точку из которой брали и ставив в целевую точку
-			cells[p.y][p.x] = 0;
-			cells[targetY][targetX] = p.value;
+				let fallenResult = fallTargetColumn(cells, targetX, targetY);
+				let startFallenCells;
 
-			let fallenResult = fallTargetColumn(cells, targetX, targetY);
-			let startFallenCells;
+				if (p.x === targetX) {
+					startFallenCells = fallStartColumn(fallenResult.newColumn, p.x);
+					fallenResult.fallen[keyXY(targetX, targetY)] += startFallenCells.maxFallen;
+				} else {
+					const startColumn = cells.map((row) => row[p.x]);
+					startFallenCells = fallStartColumn(startColumn, p.x);
+				}
 
-			if (p.x === targetX) {
-				startFallenCells = fallStartColumn(fallenResult.newColumn, p.x);
-				fallenResult.fallen[keyXY(targetX, targetY)] += startFallenCells.maxFallen;
-			} else {
-				const startColumn = cells.map((row) => row[p.x]);
-				startFallenCells = fallStartColumn(startColumn, p.x);
+				fallenResult.fallen = {...fallenResult.fallen, ...startFallenCells.fallen};
+
+				setFallen(fallenResult.fallen);
+				setCells([...cells]);
 			}
-
-			fallenResult.fallen = {...fallenResult.fallen, ...startFallenCells.fallen};
-
-			setFallen(fallenResult.fallen);
-			setCells([...cells]);
 		}
 
 		if (cellInnerRef.current) {
