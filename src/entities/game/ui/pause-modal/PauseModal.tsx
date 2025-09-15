@@ -37,6 +37,7 @@ export const PauseModal = () => {
 				<button
 					className={s.modal__button}
 					onClick={() => {
+						// window.ysdk.adv.showFullscreenAdv();
 						setPaused(false);
 						setStarted(false);
 					}}>

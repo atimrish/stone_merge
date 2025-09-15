@@ -1,19 +1,18 @@
 import {keyXY} from "@src/shared/lib/keyXY";
+import {useEffect} from "react";
 import {useGameContext} from "../../model/gameContext";
 import {Cell} from "../cell";
 import * as s from "./CellsBlock.css";
-import {useEffect, useRef} from "react";
-import {ONE_CELL_HEIGHT, ONE_CELL_WIDTH, PADDING_CELLS_BLOCK} from "../../config";
 
 export const CellsBlock = () => {
-	const {cells, fallen, cellsBlockRef, cellsBlockCoordsRef} = useGameContext();
+	const {cells, fallen, cellsBlockRef, cellsBlockCoordsRef, startTime} = useGameContext();
 
 	useEffect(() => {
 		if (cellsBlockRef.current) {
 			const {x, y} = cellsBlockRef.current.getBoundingClientRect();
 			cellsBlockCoordsRef.current = {x, y};
 		}
-	}, []);
+	}, [startTime]);
 
 	return (
 		<div className={s.cells_block} ref={cellsBlockRef}>

@@ -47,4 +47,35 @@ describe("Интеграция двух функций падения", () => {
 			maxFallen: 1,
 		});
 	});
+
+	test("Падение при столкновении с неравной клеткой в той же колонке", () => {
+		const startY = 6;
+		const startX = 0;
+		const prevY = 6;
+		const prevX = 0;
+
+		const startValue = 1;
+
+		const cells = [[0], [0], [0], [0], [2], [3], [1], [1]];
+
+		cells[startY][startX] = 0;
+		cells[prevY][prevX] = startValue;
+
+		const fallenTargetResult = fallTargetColumn(cells, prevX, prevY);
+		const operateColumn = startX === prevX ? fallenTargetResult.newColumn : cells.map((row) => row[startX]);
+		const fallStartResult = fallStartColumn(operateColumn, startX);
+
+		const fallenResult = {
+			...fallenTargetResult.fallen,
+			...fallStartResult.fallen,
+		};
+
+		console.log(fallenResult);
+
+		expect(fallenResult).toEqual({
+			"06": 1,
+			"05": 1,
+			"04": 1,
+		});
+	});
 });

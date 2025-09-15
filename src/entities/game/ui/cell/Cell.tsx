@@ -1,6 +1,6 @@
 import {keyXY} from "@src/shared/lib/keyXY";
+import {requestAnimationTimeout} from "@src/shared/lib/requestAnimationTimeout";
 import React, {useEffect, useRef} from "react";
-import {CELL_GAP, CELL_HEIGHT, CELLS_IN_COLUMN_COUNT, CELLS_IN_ROW_COUNT} from "../../config";
 import {fallStartColumn} from "../../lib/fall-start-column/fallStartColumn";
 import {fallTargetColumn} from "../../lib/fall-target-column/fallTargetColumn";
 import {getColorByValue} from "../../lib/getColorByValue";
@@ -17,8 +17,17 @@ type CellProps = {
 };
 
 export const Cell = (p: CellProps) => {
-	const {cells, setCells, setFallen, maxNumber, setMaxNumber, setScore, cellsBlockCoordsRef, boardBlockedRef} =
-		useGameContext();
+	const {
+		cells,
+		setCells,
+		setFallen,
+		maxNumber,
+		setMaxNumber,
+		setScore,
+		cellsBlockCoordsRef,
+		boardBlockedRef,
+		sizesRef,
+	} = useGameContext();
 
 	const cellInnerRef = useRef<HTMLDivElement>(null);
 	const touchStartRef = useRef<TCoords>({x: 0, y: 0});
@@ -28,8 +37,20 @@ export const Cell = (p: CellProps) => {
 	});
 
 	let isPicked = false;
+	const fallPixels = (sizesRef.current.CELL_HEIGHT + sizesRef.current.CELL_GAP) * p.fall;
 
-	const fallPixels = (CELL_HEIGHT + CELL_GAP) * p.fall;
+	const removeEventListeners = () => {
+		document.body.removeEventListener("touchmove", onTouchMove);
+		document.body.removeEventListener("mousemove", onMouseMove);
+		document.body.removeEventListener("touchend", onTouchEnd);
+		document.body.removeEventListener("mouseup", onMouseUp);
+	};
+
+	const unsetTransform = () => {
+		if (cellInnerRef.current) {
+			cellInnerRef.current.style.transform = "translate(0px, 0px)";
+		}
+	};
 
 	const onCellMove = (eventX: number, eventY: number) => {
 		isPicked = true;
@@ -46,10 +67,22 @@ export const Cell = (p: CellProps) => {
 			cellsBlockCoordsRef.current.x,
 			cellsBlockCoordsRef.current.y,
 			eventX,
-			eventY
+			eventY,
+			sizesRef.current.PADDING_CELLS_BLOCK,
+			sizesRef.current.ONE_CELL_WIDTH,
+			sizesRef.current.ONE_CELL_HEIGHT
 		);
 
-		if (targetX < 0 || targetX >= CELLS_IN_ROW_COUNT || targetY < 0 || targetY >= CELLS_IN_COLUMN_COUNT) return;
+		if (
+			targetX < 0 ||
+			targetX >= sizesRef.current.CELLS_IN_ROW_COUNT ||
+			targetY < 0 ||
+			targetY >= sizesRef.current.CELLS_IN_COLUMN_COUNT
+		) {
+			removeEventListeners();
+			unsetTransform();
+			return;
+		}
 
 		const value = cells[targetY][targetX];
 
@@ -82,16 +115,15 @@ export const Cell = (p: CellProps) => {
 			fallenResult = fallStartColumn(startColumn, p.x).fallen;
 		} else {
 			//стукаемся о другую клетку с значением
-			const prevX = lastTouchedCellRef.current.prev.x;
-			const prevY = lastTouchedCellRef.current.prev.y;
+			const prevX = lastTouchedCellRef.current.prev.x === -1 ? p.x : lastTouchedCellRef.current.prev.x;
+			const prevY = lastTouchedCellRef.current.prev.y === -1 ? p.y : lastTouchedCellRef.current.prev.y;
 
 			cells[p.y][p.x] = 0;
 			cells[prevY][prevX] = p.value;
 
-			const startColumn = cells.map((row) => row[p.x]);
-
 			const fallenTargetResult = fallTargetColumn(cells, prevX, prevY);
-			const fallStartResult = fallStartColumn(startColumn, p.x);
+			const operateColumn = p.x === prevX ? fallenTargetResult.newColumn : cells.map((row) => row[p.x]);
+			const fallStartResult = fallStartColumn(operateColumn, p.x);
 
 			fallenResult = {
 				...fallenTargetResult.fallen,
@@ -107,10 +139,12 @@ export const Cell = (p: CellProps) => {
 		setCells([...cells]);
 
 		//очищаем обработчики событий
-		document.body.removeEventListener("touchmove", onTouchMove);
-		document.body.removeEventListener("touchend", onTouchEnd);
-		document.body.removeEventListener("mousemove", onMouseMove);
-		document.body.removeEventListener("mouseup", onMouseUp);
+
+		requestAnimationTimeout(() => {
+			unsetTransform();
+		}, 150);
+
+		removeEventListeners();
 	};
 
 	const onCellUp = (eventX: number, eventY: number) => {
@@ -121,45 +155,47 @@ export const Cell = (p: CellProps) => {
 				cellsBlockCoordsRef.current.x,
 				cellsBlockCoordsRef.current.y,
 				eventX,
-				eventY
+				eventY,
+				sizesRef.current.PADDING_CELLS_BLOCK,
+				sizesRef.current.ONE_CELL_WIDTH,
+				sizesRef.current.ONE_CELL_HEIGHT
 			);
 
-			if (targetX < 0 || targetX >= CELLS_IN_ROW_COUNT || targetY < 0 || targetY >= CELLS_IN_COLUMN_COUNT) return;
+			if (
+				targetX >= 0 &&
+				targetX < sizesRef.current.CELLS_IN_ROW_COUNT &&
+				targetY >= 0 &&
+				targetY < sizesRef.current.CELLS_IN_COLUMN_COUNT
+			) {
+				if (cells[targetY][targetX] === 0) {
+					//очищаем точку из которой брали и ставив в целевую точку
+					cells[p.y][p.x] = 0;
+					cells[targetY][targetX] = p.value;
 
-			if (cells[targetY][targetX] === 0) {
-				//очищаем точку из которой брали и ставив в целевую точку
-				cells[p.y][p.x] = 0;
-				cells[targetY][targetX] = p.value;
+					let fallenResult = fallTargetColumn(cells, targetX, targetY);
+					let startFallenCells;
 
-				let fallenResult = fallTargetColumn(cells, targetX, targetY);
-				let startFallenCells;
+					if (p.x === targetX) {
+						startFallenCells = fallStartColumn(fallenResult.newColumn, p.x);
+						fallenResult.fallen[keyXY(targetX, targetY)] += startFallenCells.maxFallen;
+					} else {
+						const startColumn = cells.map((row) => row[p.x]);
+						startFallenCells = fallStartColumn(startColumn, p.x);
+					}
 
-				if (p.x === targetX) {
-					startFallenCells = fallStartColumn(fallenResult.newColumn, p.x);
-					fallenResult.fallen[keyXY(targetX, targetY)] += startFallenCells.maxFallen;
-				} else {
-					const startColumn = cells.map((row) => row[p.x]);
-					startFallenCells = fallStartColumn(startColumn, p.x);
+					fallenResult.fallen = {...fallenResult.fallen, ...startFallenCells.fallen};
+
+					setFallen(fallenResult.fallen);
+					setCells([...cells]);
 				}
-
-				fallenResult.fallen = {...fallenResult.fallen, ...startFallenCells.fallen};
-
-				setFallen(fallenResult.fallen);
-				setCells([...cells]);
 			}
-		}
-
-		if (cellInnerRef.current) {
-			cellInnerRef.current.style.transform = "translate(0px, 0px)";
 		}
 
 		touchStartRef.current.x = 0;
 		touchStartRef.current.y = 0;
 
-		document.body.removeEventListener("touchmove", onTouchMove);
-		document.body.removeEventListener("touchend", onTouchEnd);
-		document.body.removeEventListener("mousemove", onMouseMove);
-		document.body.removeEventListener("mouseup", onMouseUp);
+		unsetTransform();
+		removeEventListeners();
 	};
 
 	const onMouseUp = (e: MouseEvent) => {
@@ -198,20 +234,17 @@ export const Cell = (p: CellProps) => {
 
 	useEffect(() => {
 		return () => {
-			if (isPicked && cellInnerRef.current) {
+			if (isPicked) {
 				isPicked = false;
-				cellInnerRef.current.style.transform = "translate(0px, 0px)";
+				unsetTransform();
 			}
 
-			document.body.removeEventListener("mousemove", onMouseMove);
-			document.body.removeEventListener("mouseup", onMouseUp);
-			document.body.removeEventListener("touchmove", onTouchMove);
-			document.body.removeEventListener("touchend", onTouchEnd);
+			removeEventListeners();
 		};
 	}, [cells]);
 
 	return (
-		<div className={s.cell} data-value={p.value} data-x={p.x} data-y={p.y} data-droppable="true">
+		<div className={s.cell} data-value={p.value}>
 			<div
 				className={s.cell_inner}
 				ref={cellInnerRef}

@@ -1,5 +1,5 @@
 import {createContext, RefObject, useContext} from "react";
-import {TCellsTable, TCoords, TFallenCells, TLanguage} from "./types";
+import {TCellsTable, TCoords, TFallenCells, TLanguage, TSizes} from "./types";
 
 interface IGameContext {
 	cells: TCellsTable;
@@ -35,6 +35,7 @@ interface IGameContext {
 	cellsBlockRef: RefObject<HTMLDivElement | null>;
 	cellsBlockCoordsRef: RefObject<TCoords>;
 	boardBlockedRef: RefObject<boolean>;
+	sizesRef: RefObject<TSizes>;
 
 	pushRowAtBottom: () => void;
 	startNewGame: () => void;

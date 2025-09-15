@@ -16,7 +16,7 @@ describe("fallTargetColumn", () => {
 		});
 	});
 
-    test("падение без стаков", () => {
+	test("падение без стаков", () => {
 		const cellsOneColumn: TCellsTable = [[1], [0], [0], [0], [0], [0], [2], [2]];
 
 		const result = fallTargetColumn(cellsOneColumn, 0, 0);

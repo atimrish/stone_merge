@@ -28,11 +28,17 @@
 	place-items: center;
 	margin: 0;
 	overflow: hidden;
-	overscroll-behavior-y: contain;
+	overscroll-behavior: none;
 }
 
 @media screen and (max-width: 560px) {
 	:global :root {
 		--cell-width: 15vmin;
+	}
+}
+
+@media screen and (max-height: 700px) {
+	:global :root {
+		--cell-width: 12vmin;
 	}
 }

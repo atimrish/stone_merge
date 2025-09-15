@@ -1,11 +1,12 @@
 import {keyXY} from "@src/shared/lib/keyXY";
 import {randomNumber} from "@src/shared/lib/randomNumber";
 import {requestAnimationTimeout} from "@src/shared/lib/requestAnimationTimeout";
-import {PropsWithChildren, RefObject, useEffect, useRef, useState} from "react";
+import {PropsWithChildren, useEffect, useRef, useState} from "react";
 import {LOCAL_STORAGE_KEYS} from "../../config";
 import {getStartCells} from "../../lib/getStartCells";
 import {GameContext} from "../../model/gameContext";
-import {TCellsTable, TCoords, TFallenCells, TLanguage} from "../../model/types";
+import {TCellsTable, TCoords, TFallenCells, TLanguage, TSizes} from "../../model/types";
+import {getSizes} from "../../lib/getSizes";
 
 const initBestScore = () => {
 	const localBestScore = localStorage.getItem(LOCAL_STORAGE_KEYS.BEST_SCORE);
@@ -13,9 +14,14 @@ const initBestScore = () => {
 };
 
 const initLanguage = (): TLanguage => {
-	const localLanguage = localStorage.getItem(LOCAL_STORAGE_KEYS.LANGUAGE) as TLanguage | undefined;
-	return localLanguage ?? "ru";
+	// const ysdkLanguage = window.ysdk.environment.i18n.lang as TLanguage;
+	// const localLanguage = localStorage.getItem(LOCAL_STORAGE_KEYS.LANGUAGE) as TLanguage | undefined;
+	// return localLanguage ?? ["en", "ru"].includes(ysdkLanguage) ? ysdkLanguage : "ru";
+
+	return 'ru'
 };
+
+const initSizes = getSizes();
 
 export const GameProvider = (p: PropsWithChildren) => {
 	const [cells, setCells] = useState<TCellsTable>(getStartCells);
@@ -28,11 +34,25 @@ export const GameProvider = (p: PropsWithChildren) => {
 	const [paused, setPaused] = useState(false);
 	const [language, setLanguage] = useState<TLanguage>(initLanguage);
 	const [started, setStarted] = useState(false);
+	const [isFirstStarted, setIsFirstStarted] = useState(false);
 
 	const cellsBlockRef = useRef<HTMLDivElement>(null);
 	const cellsBlockCoordsRef = useRef<TCoords>({x: 0, y: 0});
-	const boardBlockedRef = useRef<boolean>(false)
+	const boardBlockedRef = useRef<boolean>(false);
 	const upPhaseRef = useRef(false);
+	const sizesRef = useRef<TSizes>(initSizes);
+
+	useEffect(() => {
+		const resizeObserver = new ResizeObserver(() => {
+			sizesRef.current = getSizes();
+		});
+
+		resizeObserver.observe(document.body);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, []);
 
 	useEffect(() => {
 		//сортировка по убыванию по оси y
@@ -74,7 +94,7 @@ export const GameProvider = (p: PropsWithChildren) => {
 
 		requestAnimationTimeout(() => {
 			upPhaseRef.current = false;
-			boardBlockedRef.current = false
+			boardBlockedRef.current = false;
 
 			setScore((prev) => prev + addedScore);
 			setCells([...cells]);
@@ -89,6 +109,17 @@ export const GameProvider = (p: PropsWithChildren) => {
 			setBestScore(score);
 		}
 	}, [score]);
+
+	// useEffect(() => {
+	// 	//проверка, что был первый запуск
+	// 	if (isFirstStarted) {
+	// 		if (started && !paused && !gameOver) {
+	// 			window.ysdk.features.GameplayAPI.start();
+	// 		} else {
+	// 			window.ysdk.features.GameplayAPI.stop();
+	// 		}
+	// 	}
+	// }, [started, paused, gameOver, isFirstStarted]);
 
 	const pushRowAtBottom = () => {
 		//если верхняя строка пустая
@@ -118,6 +149,8 @@ export const GameProvider = (p: PropsWithChildren) => {
 		setScore(0);
 		setPaused(false);
 		setStarted(true);
+		setIsFirstStarted(true);
+		boardBlockedRef.current = false;
 	};
 
 	return (
@@ -147,7 +180,8 @@ export const GameProvider = (p: PropsWithChildren) => {
 				startNewGame,
 				cellsBlockRef,
 				cellsBlockCoordsRef,
-				boardBlockedRef
+				boardBlockedRef,
+				sizesRef,
 			}}>
 			{p.children}
 		</GameContext.Provider>

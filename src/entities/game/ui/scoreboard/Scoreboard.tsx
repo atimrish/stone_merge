@@ -38,7 +38,12 @@ export const Scoreboard = () => {
 				</div>
 
 				<div className={s.right_block}>
-					<button className={s.scoreboard_button} onClick={() => setPaused(true)}>
+					<button
+						className={s.scoreboard_button}
+						onClick={() => {
+							// window.ysdk.adv.showFullscreenAdv();
+							setPaused(true);
+						}}>
 						<PauseIcon />
 					</button>
 				</div>
